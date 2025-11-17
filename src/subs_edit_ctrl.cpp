@@ -209,16 +209,25 @@ void SubsTextEditCtrl::OnLoseFocus(wxFocusEvent &event) {
 void SubsTextEditCtrl::OnChar(wxKeyEvent &event) {
 	event.Skip();
 
-	// TODO upgrade system to support both RTL and LTR by fixing data
+	// If the edit control is empty, decide direction based on the first
+	// character typed and insert a directional mark so Scintilla renders
+	// the text correctly. Use the text buffer length after inserting the
+	// mark to place the caret at the end (robust to multi-byte markers).
+	// TODO: upgrade storage to preserve explicit direction markers in the
+	// dialogue text if desired.
 	if (GetTextRaw().length() == 0) {
-		if (IsCharRTL(event.GetUnicodeKey()))
-		{
+		if (IsCharRTL(event.GetUnicodeKey())) {
+			// Insert RTL directional mark and switch layout
 			SetTextTo(RTL_MARK);
 			SetLayoutDirection(wxLayout_RightToLeft);
-			SetSelection(GetSelectionStart() + 5, GetSelectionStart() + 5);
+
+			// Move caret to end of buffer so the next typed character appears
+			// after the directional mark.
+			wxCharBuffer buf = GetTextRaw();
+			int pos = static_cast<int>(buf.length());
+			SetSelection(pos, pos);
 		}
-		else
-		{
+		else {
 			SetLayoutDirection(wxLayout_LeftToRight);
 		}
 	}
