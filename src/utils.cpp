@@ -50,6 +50,10 @@
 #include <wx/stdpaths.h>
 #include <wx/window.h>
 
+// HarfBuzz is used to detect character script directions for RTL/LTR support
+#include <harfbuzz/hb.h>
+#include <harfbuzz/hb-unicode.h>
+
 #ifdef __APPLE__
 #include <libaegisub/util_osx.h>
 #include <CoreText/CTFont.h>
@@ -97,9 +101,10 @@ int SmallestPowerOf2(int x) {
 }
 
 bool IsCharRTL(wxChar character) {
-    hb_unicode_funcs_t* unicode_funcs = hb_unicode_funcs_get_default();
-    hb_script_t script = hb_unicode_script(unicode_funcs, character);
-    return hb_script_get_horizontal_direction(script) == HB_DIRECTION_RTL;
+	hb_unicode_funcs_t* unicode_funcs = hb_unicode_funcs_get_default();
+	hb_codepoint_t cp = static_cast<hb_codepoint_t>(character);
+	hb_script_t script = hb_unicode_script(unicode_funcs, cp);
+	return hb_script_get_horizontal_direction(script) == HB_DIRECTION_RTL;
 }
 
 #ifndef __WXMAC__
