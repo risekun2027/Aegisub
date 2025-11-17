@@ -51,10 +51,10 @@
 #include <wx/window.h>
 
 // HarfBuzz is used to detect character script directions for RTL/LTR support
-// Include without the "harfbuzz/" prefix so the companion unicode header
-// (hb-unicode.h) finds the primary hb header as expected on some distros.
-#include <hb.h>
-#include <hb-unicode.h>
+// Include the headers with the harfbuzz/ prefix and ensure hb.h is
+// included before hb-unicode.h as required by the harfbuzz headers.
+#include <harfbuzz/hb.h>
+#include <harfbuzz/hb-unicode.h>
 
 #ifdef __APPLE__
 #include <libaegisub/util_osx.h>
