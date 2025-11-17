@@ -50,12 +50,6 @@
 #include <wx/stdpaths.h>
 #include <wx/window.h>
 
-// HarfBuzz is used to detect character script directions for RTL/LTR support
-// Include the headers with the harfbuzz/ prefix and ensure hb.h is
-// included before hb-unicode.h as required by the harfbuzz headers.
-#include <harfbuzz/hb.h>
-#include <harfbuzz/hb-unicode.h>
-
 #ifdef __APPLE__
 #include <libaegisub/util_osx.h>
 #include <CoreText/CTFont.h>
@@ -103,10 +97,24 @@ int SmallestPowerOf2(int x) {
 }
 
 bool IsCharRTL(wxChar character) {
-	hb_unicode_funcs_t* unicode_funcs = hb_unicode_funcs_get_default();
-	hb_codepoint_t cp = static_cast<hb_codepoint_t>(character);
-	hb_script_t script = hb_unicode_script(unicode_funcs, cp);
-	return hb_script_get_horizontal_direction(script) == HB_DIRECTION_RTL;
+	// Detect RTL scripts using Unicode ranges. This is a lightweight fallback
+	// that covers the major RTL scripts without requiring HarfBuzz.
+	// Ranges include: Hebrew, Arabic, Syriac, Thaana, Nko, Samaritan, Mandaic,
+	// and other RTL-dominant scripts.
+	uint32_t cp = static_cast<uint32_t>(character);
+	
+	return (cp >= 0x0590 && cp <= 0x05FF) ||  // Hebrew
+	       (cp >= 0x0600 && cp <= 0x06FF) ||  // Arabic
+	       (cp >= 0x0700 && cp <= 0x074F) ||  // Syriac
+	       (cp >= 0x0750 && cp <= 0x077F) ||  // Arabic Supplement
+	       (cp >= 0x0780 && cp <= 0x07BF) ||  // Thaana
+	       (cp >= 0x07C0 && cp <= 0x07FF) ||  // Nko
+	       (cp >= 0x0800 && cp <= 0x083F) ||  // Samaritan
+	       (cp >= 0x0840 && cp <= 0x085F) ||  // Mandaic
+	       (cp >= 0x08A0 && cp <= 0x08FF) ||  // Arabic Extended-A
+	       (cp >= 0xFB1D && cp <= 0xFB4F) ||  // Hebrew in Alphabetic Presentation Forms
+	       (cp >= 0xFB50 && cp <= 0xFDFF) ||  // Arabic in Alphabetic Presentation Forms
+	       (cp >= 0xFE70 && cp <= 0xFEFF);    // Arabic in Arabic Presentation Forms-B
 }
 
 #ifndef __WXMAC__
